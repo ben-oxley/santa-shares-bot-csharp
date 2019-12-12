@@ -15,6 +15,8 @@ namespace santa_shares
         public static async Task Main(string[] args)
         {
             User user = await Init();
+            // Monitor monitor = new Monitor();
+            // await monitor.Run();
             Trader trader = new Trader(user);
             await trader.Run();
             Console.ReadLine();

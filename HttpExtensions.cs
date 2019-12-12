@@ -19,6 +19,7 @@ namespace santa_shares
             if (!(auth is null)) httpClient.DefaultRequestHeaders.Authorization = auth;
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
             return httpClient.PostAsync(url, content);
+            
         }
 
         public static Task<HttpResponseMessage> GetAsJsonAsync<T>(
