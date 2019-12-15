@@ -31,40 +31,29 @@ namespace santa_shares
 
         public async Task Run()
         {
-            int time = (int)(DateTime.Now.Second / 60.0);
             while (true)
             {
                 try
                 {
                     User userStatus = await GetUserStatus();
-                    foreach (var item in userStatus.items)
-                    {
-                        await Sell(item, item.amount);
+                    if (userStatus.balance<133700000){
+                        int diff = 133700000-userStatus.balance;
+                        int minDiff = userStatus.items.Select(i=>Math.Abs(i.price-diff)).Min();
+                        Console.WriteLine(minDiff);
+                        Item item = userStatus.items.Where(i=>Math.Abs(i.price-diff)==minDiff).FirstOrDefault();
+                        await Sell(item, 1);
+                    } else if (userStatus.balance == 133700000) {
+                        Thread.Sleep(1000);
+                        Console.WriteLine("Done.");
+                    } else {
+                        Item[] items = await GetItemList();
+                        int diff = userStatus.balance-133700000;
+                        int minDiff = items.Where(i=>i.amount>0).Select(i=>Math.Abs(i.price-diff)).Min();
+                        Console.WriteLine(minDiff);
+                        Item item = items.Where(i=>i.amount>0).Where(i=>Math.Abs(i.price-diff)==minDiff).FirstOrDefault();
+                        await Buy(item, 1);
                     }
-                    while (time == DateTime.Now.Minute && DateTime.Now.Second<30)
-                    {
-                        Thread.Sleep(100);
-                    }
-                    time = DateTime.Now.Minute;
-                    //Buy an item
-                    Item[] items = await GetItemList();
-                    
-                    
-                    List<Task> taskList = new List<Task>();
-
-                    foreach (var itemToBuy in items.Where(i=>i.amount>0))
-                    {
-                        for (int i = 0; i < 100; i++) taskList.Add(Buy(itemToBuy, itemToBuy.amount));
-                        
-                    }
-                    Task.WaitAll(taskList.ToArray());
-                    taskList.Clear();
-
-                    while (time == DateTime.Now.Minute && DateTime.Now.Second<30)
-                    {
-                        Thread.Sleep(100);
-                    }
-                    time = DateTime.Now.Minute;
+                   
                     
                 }
                 catch (Exception e)
