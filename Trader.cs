@@ -31,50 +31,41 @@ namespace santa_shares
 
         public async Task Run()
         {
+            int time = (int)(DateTime.Now.Second / 60.0);
             while (true)
             {
                 try
                 {
+                    User userStatus = await GetUserStatus();
+                    foreach (var item in userStatus.items)
+                    {
+                        await Sell(item, item.amount);
+                    }
+                    while (time == DateTime.Now.Minute && DateTime.Now.Second<30)
+                    {
+                        Thread.Sleep(100);
+                    }
+                    time = DateTime.Now.Minute;
                     //Buy an item
                     Item[] items = await GetItemList();
-                    Item[] userItems = await GetUserInventory();
-                    foreach (var userItem in userItems)
-                    {
-                        await Sell(userItem, userItem.amount);
-                    }
-                    User userStatus = await GetUserStatus();
-                    itemHistory.Add(items);
-                    if (itemHistory.Count > 100) itemHistory.RemoveAt(0);
-                    Item[] oldestHistory = itemHistory[0];
-                    if (itemHistory.Count > 1)
-                    {
-                        IEnumerable<IGrouping<double, Item>> enumerable = items.Where(i => i.amount > 0).GroupBy(i =>
-                        {
-                            Item item2 = oldestHistory.Where(i => i.item_id == i.item_id).FirstOrDefault();
-                            double gradient = (i.price - item2.price) / (double)itemHistory.Count;
-                            return gradient;
-                        });
-                        List<IGrouping<double, Item>> list = enumerable.OrderByDescending(i => i.Key).ToList();
-                        int funds = userStatus.balance;
-                        bool finished = false;
-                        foreach (var profitableItemGroup in list)
-                        {
-                            foreach (var profitableItem in profitableItemGroup)
-                            {
-                                if (profitableItem.price * profitableItem.amount > funds)
-                                {
-                                    finished = true;
-                                    break;
-                                }
+                    
+                    
+                    List<Task> taskList = new List<Task>();
 
-                                await Buy(profitableItem, profitableItem.amount);
-                                funds -= profitableItem.price * profitableItem.amount;
-                            }
-                            if (finished) break;
-                        }
-
+                    foreach (var itemToBuy in items.Where(i=>i.amount>0))
+                    {
+                        for (int i = 0; i < 100; i++) taskList.Add(Buy(itemToBuy, itemToBuy.amount));
+                        
                     }
-                    Thread.Sleep(60000);
+                    Task.WaitAll(taskList.ToArray());
+                    taskList.Clear();
+
+                    while (time == DateTime.Now.Minute && DateTime.Now.Second<30)
+                    {
+                        Thread.Sleep(100);
+                    }
+                    time = DateTime.Now.Minute;
+                    
                 }
                 catch (Exception e)
                 {
