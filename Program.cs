@@ -15,6 +15,7 @@ namespace santa_shares
         public static readonly string APIUrl = @"http://santa-shares.azurewebsites.net/api/";
         public static async Task Main(string[] args)
         {
+            Console.WriteLine("Config in: "+LocalFolder);
             User user = await Init();
             // Monitor monitor = new Monitor();
             // await monitor.Run();
