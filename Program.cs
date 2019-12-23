@@ -10,7 +10,8 @@ namespace santa_shares
 {
     class Program
     {
-        private static readonly string LocalFile = Environment.ExpandEnvironmentVariables("%APPDATA%/santa/user.txt");
+        private static readonly string LocalFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/santa/";
+        private static readonly string LocalFile = LocalFolder+"/user.txt";
         public static readonly string APIUrl = @"http://santa-shares.azurewebsites.net/api/";
         public static async Task Main(string[] args)
         {
@@ -48,7 +49,8 @@ namespace santa_shares
                     string v = Console.ReadLine();
                     if (v.ToLowerInvariant().Contains("y"))
                     {
-                        if (!Directory.Exists(Environment.ExpandEnvironmentVariables("%APPDATA%/santa/"))) Directory.CreateDirectory(Environment.ExpandEnvironmentVariables("%APPDATA%/santa/"));
+                        
+                        if (!Directory.Exists(Environment.ExpandEnvironmentVariables(LocalFolder))) Directory.CreateDirectory(Environment.ExpandEnvironmentVariables(LocalFolder));
                         user = await CreateUser(username);
                         users.AllUsers = users.AllUsers.Append(user).ToArray();
                         await File.WriteAllTextAsync(LocalFile, JsonSerializer.Serialize(users, typeof(Users)));
@@ -70,7 +72,7 @@ namespace santa_shares
                 string v = Console.ReadLine();
                 if (v.ToLowerInvariant().Contains("y"))
                 {
-                    if (!Directory.Exists(Environment.ExpandEnvironmentVariables("%APPDATA%/santa/"))) Directory.CreateDirectory(Environment.ExpandEnvironmentVariables("%APPDATA%/santa/"));
+                    if (!Directory.Exists(LocalFolder)) Directory.CreateDirectory(LocalFolder);
                     user = await CreateUser(username);
                     await File.WriteAllTextAsync(LocalFile, JsonSerializer.Serialize(new Users() { AllUsers = new[] { user } }, typeof(Users)));
                     return user;
